@@ -13,7 +13,9 @@ char* get_extension( char* url )
     size = end - url;
 
     /* find extension */
-    while( url[--size] != '.' );
+    while( size >= 0 && url[--size] != '.' );
+    if( size < 0 )
+        return NULL;
     size++;
 
     return url+size;
@@ -28,6 +30,8 @@ int main(void)
     if(curl) {
         int i;
         char bodyfn[1024];
+        char saftey_ext[4];
+
         for(i = 1;; i++) {
             char* url;
             char* ext;
@@ -39,8 +43,14 @@ int main(void)
                 return -1;
             }
 
-            /* open output file */
+            /* get output file name extension */
             ext = get_extension(url);
+            if( !ext ) {
+                snprintf(saftey_ext, 4, "txt");
+                ext = saftey_ext;
+            }
+
+            /* open output file */
             snprintf(bodyfn, 1024, "file-%04d.%s", i, ext);
             bodyfp = fopen(bodyfn, "w");
             if(!bodyfp) {
@@ -51,6 +61,8 @@ int main(void)
             curl_easy_setopt(curl, CURLOPT_URL, url);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, bodyfp);
             res = curl_easy_perform(curl);
+
+            free(url);
         }
         /* always cleanup */
         curl_easy_cleanup(curl);
