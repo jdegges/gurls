@@ -1,0 +1,6 @@
+Required libraries: libcurl, libreadline
+Compile: make
+Install: sudo make install
+Uninstall: sudo make uninstall
+Run: gurl
+Usage: Enter a list of URLs delimited by newlines.
