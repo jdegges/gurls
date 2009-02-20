@@ -1,72 +1,35 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <curl/curl.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <pthread.h>
 
-char* get_extension( char* url )
-{
-    int size;
-    char* end = url;
-
-    /* find end of string */
-    while( *end++ != '\0' );
-    size = end - url;
-
-    /* find extension */
-    while( size >= 0 && url[--size] != '.' );
-    if( size < 0 )
-        return NULL;
-    size++;
-
-    return url+size;
-}
+#include "gurl.h"
+#include "download.h"
 
 int main(void)
 {
-    CURL *curl;
-    CURLcode res;
+    gurl_t* gurl;
+    pthread_t tid;
+    int rc;
 
-    curl = curl_easy_init();
-    if(curl) {
-        int i;
-        char bodyfn[1024];
-        char saftey_ext[4];
+    curl_global_init( CURL_GLOBAL_ALL );
 
-        for(i = 1;; i++) {
-            char* url;
-            char* ext;
-            FILE* bodyfp;
+    gurl = malloc( sizeof(gurl_t) );
+    memset( gurl, 0, sizeof(gurl_t) );
 
-            url = readline(NULL);
-            if( !url || *url == '\0' ) {
-                curl_easy_cleanup(curl);
-                return -1;
-            }
+    gurl->i_threads = 5;
+    gurl->queue = gurl_queue_open( 20 );
 
-            /* get output file name extension */
-            ext = get_extension(url);
-            if( !ext ) {
-                snprintf(saftey_ext, 4, "txt");
-                ext = saftey_ext;
-            }
+    rc = pthread_create( &tid, NULL, gurl_download_manager, (void*) gurl );
+    gurl_pthread_error( rc, "gurl main!", "pthread_create()" );
 
-            /* open output file */
-            snprintf(bodyfn, 1024, "file-%04d.%s", i, ext);
-            bodyfp = fopen(bodyfn, "w");
-            if(!bodyfp) {
-                curl_easy_cleanup(curl);
-                return -1;
-            }
+    rc = pthread_join( tid, NULL );
+    gurl_pthread_error( rc, "gurl main!", "pthread_join()" );
 
-            curl_easy_setopt(curl, CURLOPT_URL, url);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, bodyfp);
-            res = curl_easy_perform(curl);
+    gurl_queue_close( gurl->queue );
+    free( gurl );
 
-            free(url);
-        }
-        /* always cleanup */
-        curl_easy_cleanup(curl);
-    }
     return 0;
 }
-
