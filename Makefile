@@ -8,11 +8,11 @@ BINDIR	:= /usr/local/bin/
 all : $(OBJECTS) $(HEADERS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o gurls $(LIBS)
 
-install : gurl
+install : all
 	install -d $(BINDIR)
 	install gurls $(BINDIR)
 
-uninstall : gurl
+uninstall :
 	rm -f $(BINDIR)/gurls
 
 clean : 
