@@ -10,7 +10,7 @@ int main( int argc, char** argv )
     uint32_t threads = 5;
     FILE* fin = NULL;
 
-    while( (opt = getopt(argc, argv, "f:j:")) != -1 ) {
+    while( (opt = getopt(argc, argv, "hf:j:")) != -1 ) {
         switch( opt ) {
             case 'f':
                 fin = fopen( optarg, "r" );
@@ -20,6 +20,18 @@ int main( int argc, char** argv )
             case 'j':
                 threads = strtoul( optarg, NULL, 10 );
                 break;
+            case 'h':
+                printf( "Syntax: gurls [-f file] [-j threads]\n" );
+                printf( "\n" );
+                printf( "Options:\n" );
+                printf( "   -h                  Display this help menu\n" );
+                printf( "   -f <filename>       File to read URLs from [stdin]\n" );
+                printf( "   -j <integer>        Number of download threads to spawn [5]\n" );
+                printf( "\n" );
+                printf( "Example:\n" );
+                printf( "   gurls -f my_urls.txt -j 8\n" );
+                printf( "\n" );
+                return 0;
             default:
                 fprintf( stderr, "Usage: gurls [-f file] [-j threads]\n" );
                 exit( EXIT_FAILURE );
