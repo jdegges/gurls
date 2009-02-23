@@ -1,19 +1,49 @@
-CC		:= gcc
-CFLAGS	:= --fast-math -O6
-LIBS	:= -lcurl -lpthread
-OBJECTS	:= $(patsubst %.c,%.o,$(wildcard *.c))
-HEADERS	:= $(wildcard *.h)
-BINDIR	:= /usr/local/bin/
+CC	= gcc
+AR	= ar
 
-all : $(OBJECTS) $(HEADERS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o gurls $(LIBS)
+INCDIR 		= /usr/local/include
+INSTALLDIR	= /usr/local/lib
+BINDIR		= /usr/local/bin
 
-install : all
-	install -d $(BINDIR)
-	install gurls $(BINDIR)
+CFLAGS	= --fast-math -O6 -fPIC
+LIBS	= -lcurl -lpthread
 
-uninstall :
-	rm -f $(BINDIR)/gurls
+SRCS	= download.c gurls.c queue.c
+INCLS	= download.h gurls.h queue.h common.h
+MODULES	= $(SRCS:.c=.o)
 
-clean : 
-	rm -rf gurls *.o
+VER_MAJOR	= 1
+VER_MINOR	= 0.1
+TARGET		= gurls
+STATICLIB	= lib$(TARGET).a
+SHAREDLIB	= lib$(TARGET)-$(VER_MAJOR).$(VER_MINOR).so
+LIBNAME 	= lib$(TARGET).so
+VERLIBNAME	= $(LIBNAME).$(VER_MAJOR)
+HEADER		= gurls.h
+EXEC		= gurls
+
+all: $(STATICLIB) $(SHAREDLIB) $(EXEC)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(STATICLIB): $(MODULES)
+	$(AR) r $@ $(MODULES)
+
+$(SHAREDLIB): $(MODULES)
+	$(CC) -s -shared -Wl,-soname,$(VERLIBNAME) -o $@ $(MODULES) $(LIBS)
+
+$(EXEC): $(MODULES) main.c
+	$(CC) -o $@ $(MODULES) main.c $(LIBS)
+
+install:
+	install -m 0644 -o root -g root $(HEADER) $(INCDIR)
+	install -m 0644 -o root -g root $(STATICLIB) $(INSTALLDIR)
+	install -m 0755 -o root -g root $(SHAREDLIB) $(INSTALLDIR)
+	ln -sf $(SHAREDLIB) $(INSTALLDIR)/$(VERLIBNAME)
+	ln -sf $(VERLIBNAME) $(INSTALLDIR)/$(LIBNAME)
+	install $(EXEC) $(BINDIR)
+	ldconfig
+
+clean:
+	rm -f $(MODULES) $(STATICLIB) $(SHAREDLIB) $(LIBNAME) $(EXEC)
