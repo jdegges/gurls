@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gurl.h"
+#include "common.h"
 #include "queue.h"
 
 #define ABS_MAX_SIZE 20

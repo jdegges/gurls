@@ -1,19 +1,19 @@
-CC		:= gcc
-CFLAGS	:= --fast-math -O6
-LIBS	:= -lcurl -lreadline -lpthread
-SOURCE	:= $(wildcard *.c)
-HEADERS	:= $(wildcard *.h)
-BINDIR	:= /usr/local/bin/
+CC      := gcc
+CFLAGS  := --fast-math -O6
+LIBS    := -lcurl -lpthread
+OBJECTS := $(patsubst %.c,%.o,$(wildcard *.c))
+HEADERS := $(wildcard *.h)
+BINDIR  := /usr/local/bin/
 
-all : $(SOURCE) $(HEADERS)
-	$(CC) $(CFLAGS) $(SOURCE) -o gurl $(LIBS)
+all : $(OBJECTS) $(HEADERS)
+	$(CC) $(CFLAGS) $(OBJECTS) -o gurls $(LIBS)
 
 install : gurl
 	install -d $(BINDIR)
-	install gurl $(BINDIR)
+	install gurls $(BINDIR)
 
 uninstall : gurl
-	rm -f $(BINDIR)/gurl
+	rm -f $(BINDIR)/gurls
 
 clean : 
-	rm -rf gurl *.o
+	rm -rf gurls *.o

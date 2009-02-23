@@ -1,4 +1,4 @@
-Required libraries: libcurl, libreadline, libpthread
+Required libraries: libcurl, libpthread
 Compile: make
 Install: sudo make install
 Uninstall: sudo make uninstall
