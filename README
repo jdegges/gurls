@@ -2,5 +2,5 @@ Required libraries: libcurl, libpthread
 Compile: make
 Install: sudo make install
 Uninstall: sudo make uninstall
-Run: gurl
+Run: gurls
 Usage: Enter a list of URLs delimited by newlines.
