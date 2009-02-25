@@ -1,7 +1,7 @@
 CC	= gcc
 AR	= ar
 
-INCDIR 		= /usr/local/include
+INCDIR	= /usr/local/include
 LIBDIR	= /usr/local/lib
 BINDIR	= /usr/local/bin
 
