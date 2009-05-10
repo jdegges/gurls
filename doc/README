@@ -1,6 +1,11 @@
 Required libraries: libcurl, libpthread
-Compile: make
+Compile:
+    1. autoreconf --install
+    2. ./configure
+    3. make
 Install: sudo make install
 Uninstall: sudo make uninstall
 Run: gurls
 Usage: Enter a list of URLs delimited by newlines.
+
+To link against libgurls you will need to run `ldconfig' after make install.
