@@ -1,3 +1,6 @@
+AM_CPPFLAGS = @PACKAGE_CFLAGS@
+gurls_LDADD = @PACKAGE_LIBS@
+
 bin_PROGRAMS = gurls
 gurls_SOURCES =		\
     common.h        \

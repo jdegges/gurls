@@ -14,7 +14,11 @@ AC_CANONICAL_BUILD
 AC_PROG_CC
 AC_PROG_LIBTOOL
 AC_PROG_CXX
-AC_PROG_RANLIB
+
+# Checks for libraries with pkg-config
+PKG_CHECK_MODULES(PACKAGE, "libcurl")
+AC_SUBST(PACKAGE_CFLAGS)
+AC_SUBST(PACKAGE_LIBS)
 
 # Checks for librairies.
 AC_HAVE_LIBRARY([curl])
