@@ -1,14 +1,45 @@
 #include <stdlib.h>
-#include <stdio.h>
-#include <curl/curl.h>
-#include <pthread.h>
 #include <string.h>
 #include <regex.h>
 
-#include "gurls.h"
-#include "common.h"
-#include "download.h"
-#include "queue.h"
+#include <curl/curl.h>
+#include <loomlib/thread_pool.h>
+
+#include <gurls.h>
+
+typedef struct gurl_url_t
+{
+    char        url[1024];
+    char        filename[1024];
+} gurl_url_t;
+
+void gurl_url_download( func_data data, exec_func *next_func, func_data *next_data )
+{
+    CURL* curl = curl_easy_init();
+
+    gurl_url_t* u = (gurl_url_t *) data;
+    FILE* fp;
+
+    if( u == NULL ) {
+        curl_easy_cleanup( curl );
+        return;
+    }
+
+    fp = fopen( u->filename, "w" );
+    if( !fp ) {
+        curl_easy_cleanup( curl );
+        return;
+    }
+
+    /* set up curl and download file */
+    curl_easy_setopt( curl, CURLOPT_URL, u->url );
+    curl_easy_setopt( curl, CURLOPT_WRITEDATA, fp );
+    curl_easy_perform( curl );
+    curl_easy_cleanup( curl );
+
+    fclose( fp );
+    free( u );
+}
 
 static inline char* get_extension( char* url )
 {
@@ -48,8 +79,7 @@ static inline int is_url( char* url )
 
 int gurls( FILE* fin, uint32_t threads )
 {
-    gurl_queue_t* queue;
-    pthread_t* tid;
+    struct thread_pool *pool;
     uint32_t i;
     int32_t rc;
     char url[1024];
@@ -60,28 +90,14 @@ int gurls( FILE* fin, uint32_t threads )
               threads == 0 ? 5  :
               threads;
 
-    /* create tid's */
-    tid = malloc( sizeof(pthread_t)*threads );
-    if( !tid ) {
-        return -1;
-    }
-
-    /* create url queue */
-    queue = gurl_queue_open( 20 );
-    if( !queue ) {
+    pool = thread_pool_new( threads );
+    if( !pool ) {
         return -1;
     }
 
     /* initialize curl */
     curl_global_init( CURL_GLOBAL_ALL );
 
-    /* spawn threads */
-    for( i = 0; i < threads; i++ ) {
-        rc = pthread_create( tid+i, NULL, gurl_url_download, (void*) queue );
-        gurl_pthread_error( rc, "gurls()", "pthread_create()" );
-    }
-
-    /* push input onto queue */
     for( i = 0; fgets(url, 1024, fin) ; i++ )
     {
         gurl_url_t* u;
@@ -113,23 +129,14 @@ int gurls( FILE* fin, uint32_t threads )
             aux = saftey_ext;
         snprintf( u->filename, 1024, "file-%010d.%s", i, aux );
 
-        // add url to queue
-        gurl_queue_push( queue, (void*) u );
+        thread_pool_push( pool, gurl_url_download, u );
     }
 
     /* send term signal to children */
-    for( i = 0; i < threads; i++ ) {
-        gurl_queue_push( queue, NULL );
-    }
-
-    /* join children */
-    for( i = 0; i < threads; i++ ) {
-        rc = pthread_join( tid[i], NULL );
-        gurl_pthread_error( rc, "gurls()", "pthread_join()" );
-    }
+    thread_pool_terminate( pool );
 
     /* cleanup */
-    gurl_queue_close( queue );
+    thread_pool_free( pool );
     curl_global_cleanup();
     return 0;
 }
