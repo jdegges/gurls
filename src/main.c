@@ -1,6 +1,8 @@
+#define _XOPEN_SOURCE /* for getopt */
+
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 
 #include "gurls.h"
 
