@@ -7,6 +7,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
+PKG_PROG_PKG_CONFIG([0.22])
 
 # Checks for programs.
 AC_CANONICAL_HOST
@@ -21,13 +22,8 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
 # Checks for libraries with pkg-config
-PKG_CHECK_MODULES(PACKAGE, "libcurl")
-AC_SUBST(PACKAGE_CFLAGS)
-AC_SUBST(PACKAGE_LIBS)
-
-# Checks for librairies.
-AC_HAVE_LIBRARY([curl])
-AC_HAVE_LIBRARY([loomlib])
+PKG_CHECK_MODULES([LIBCURL], [libcurl])
+PKG_CHECK_MODULES([LOOMLIB], [loomlib])
 
 # Checks for header files.
 AC_HEADER_STDC
