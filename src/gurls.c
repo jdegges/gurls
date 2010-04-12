@@ -1,4 +1,7 @@
+#define _BSD_SOURCE /* for snprintf */
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <regex.h>
 
@@ -13,7 +16,7 @@ typedef struct gurl_url_t
     char        filename[1024];
 } gurl_url_t;
 
-void gurl_url_download( func_data data, exec_func *next_func, func_data *next_data )
+void gurl_url_download( void *data )
 {
     CURL* curl = curl_easy_init();
 
@@ -41,7 +44,7 @@ void gurl_url_download( func_data data, exec_func *next_func, func_data *next_da
     free( u );
 }
 
-static inline char* get_extension( char* url )
+static char* get_extension( char* url )
 {
     int size;
     char* end = url;
@@ -60,7 +63,7 @@ static inline char* get_extension( char* url )
     return url+size;
 }
 
-static inline int is_url( char* url )
+static int is_url( char* url )
 {
     char pattern[92] = "((https?|ftp|gopher|telnet|file|notes|ms-help):((//)|(\\\\\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
     int    status;
@@ -81,7 +84,6 @@ int gurls( FILE* fin, uint32_t threads )
 {
     struct thread_pool *pool;
     uint32_t i;
-    int32_t rc;
     char url[1024];
     char saftey_ext[5] = "txt\0";
 
@@ -112,17 +114,17 @@ int gurls( FILE* fin, uint32_t threads )
             continue;
         }
 
-        // create url object
+        /* create url object */
         u = malloc( sizeof(gurl_url_t) );
         if( !u ) {
             break;
         }
 
-        // remove trailing newline
+        /* remove trailing newline */
         for( aux = url; aux-url < 1024 && *aux != '\n' && *aux != '\0'; aux++ );
         *aux = '\0';
 
-        // fill up url object
+        /* fill up url object */
         strncpy( u->url, url, 1024 );
         aux = get_extension( url );
         if( !aux )
